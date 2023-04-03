@@ -1,3 +1,6 @@
+import asyncio
+
+
 def draw_frame(canvas, start_row, start_column, text, negative=False):
     """Draw multiline text fragment on canvas. Erase text instead of drawing
     if negative=True is specified."""
@@ -38,3 +41,9 @@ def get_frame_size(text):
     rows = len(lines)
     columns = max([len(line) for line in lines])
     return rows, columns
+
+
+async def sleep(tics=1):
+    iteration_count = int(tics * 10)
+    for _ in range(iteration_count):
+        await asyncio.sleep(0)

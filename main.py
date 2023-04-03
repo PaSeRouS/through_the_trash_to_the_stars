@@ -3,7 +3,7 @@ import curses
 import random
 import time
 
-from curses_tools import get_frame_size
+from curses_tools import get_frame_size, sleep
 from animation import animate_frames
 from space_trash import fly_garbage
 
@@ -17,25 +17,20 @@ def load_frame_from_file(filename):
 
 
 async def blink(canvas, row, column, symbol='*', offset_tics=10):
-    for _ in range(offset_tics):
-        await asyncio.sleep(0)
+    await sleep(offset_tics / 10)
   
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for _ in range(20):
-            await asyncio.sleep(0)
+        await sleep(2)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(0.3)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for _ in range(5):
-            await asyncio.sleep(0)
+        await sleep(0.5)
 
         canvas.addstr(row, column, symbol)
-        for _ in range(3):
-            await asyncio.sleep(0)
+        await sleep(0.3)
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
@@ -86,8 +81,7 @@ async def fill_orbit_with_garbage(canvas, coroutines, trash_frames):
         trash_coroutines = fly_garbage(canvas, actual_column, current_trash_frame)
         coroutines.append(trash_coroutines)
         
-        for _ in range(20):
-            await asyncio.sleep(0)
+        await sleep(2)
 
 
 def draw(canvas):
