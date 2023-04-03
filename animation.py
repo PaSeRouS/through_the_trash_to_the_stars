@@ -1,7 +1,7 @@
 import asyncio
 import itertools
 
-from curses_tools import draw_frame
+from curses_tools import draw_frame, get_frame_size
 
 
 SPACE_KEY_CODE = 32
@@ -54,16 +54,6 @@ async def animate_frames(canvas, start_row, start_column, frames):
             )
 
         current_frame = next(frames_cycle)
-
-
-def get_frame_size(text):
-    """Calculate size of multiline text fragment. Returns pair (rows number,
-    colums number)"""
-
-    lines = text.splitlines()
-    rows = len(lines)
-    columns = max([len(line) for line in lines])
-    return rows, columns
 
 
 def read_controls(canvas):

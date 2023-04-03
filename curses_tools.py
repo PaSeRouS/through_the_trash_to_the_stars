@@ -28,3 +28,13 @@ def draw_frame(canvas, start_row, start_column, text, negative=False):
 
             symbol = symbol if not negative else ' '
             canvas.addch(row, column, symbol)
+
+
+def get_frame_size(text):
+    """Calculate size of multiline text fragment. Returns pair (rows number,
+    colums number)"""
+
+    lines = text.splitlines()
+    rows = len(lines)
+    columns = max([len(line) for line in lines])
+    return rows, columns

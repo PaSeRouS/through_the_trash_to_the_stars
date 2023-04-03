@@ -3,6 +3,7 @@ import curses
 import random
 import time
 
+from curses_tools import get_frame_size
 from animation import animate_frames
 from space_trash import fly_garbage
 
@@ -65,6 +66,28 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         canvas.addstr(round(row), round(column), ' ')
         row += rows_speed
         column += columns_speed
+
+
+async def fill_orbit_with_garbage(canvas, coroutines, trash_frames):
+    rows_number, columns_number = canvas.getmaxyx()
+    border_size = 1
+    while True:
+        current_trash_frame = random.choice(trash_frames)
+        rows_number, trash_column_size = get_frame_size(current_trash_frame)
+        random_column = random.randint(
+            border_size,
+            columns_number - border_size
+        )
+        actual_column = min(
+            columns_number - trash_column_size - border_size,
+            random_column + trash_column_size - border_size,
+        )
+
+        trash_coroutines = fly_garbage(canvas, actual_column, current_trash_frame)
+        coroutines.append(trash_coroutines)
+        
+        for _ in range(20):
+            await asyncio.sleep(0)
 
 
 def draw(canvas):
@@ -146,12 +169,9 @@ def draw(canvas):
         )
     )
 
-    trash_coro = [
-        fly_garbage(canvas, (column * 10) + 5, frame)
-        for column, frame in enumerate(trash_frames)
-    ]
+    trash_coroutines = fill_orbit_with_garbage(canvas, coroutines, trash_frames)
 
-    coroutines.extend(trash_coro)
+    coroutines.append(trash_coroutines)
     
     while True:
         for coroutine in coroutines.copy():
