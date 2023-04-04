@@ -1,4 +1,5 @@
 import asyncio
+import curses
 import itertools
 
 from curses_tools import draw_frame, get_frame_size, sleep
@@ -22,9 +23,9 @@ async def animate_spaceship(canvas, frames):
         await sleep(0.3)
 
 
-async def run_spaceship(canvas, start_row, start_column):
+async def run_spaceship(canvas, coroutines, start_row, start_column):
     height, width = canvas.getmaxyx()
-    border_size = 1
+    border_size = symbol_size = 1
 
     frame_size_y, frame_size_x = get_frame_size(spaceship_frame)
     frame_pos_x = round(start_column) - round(frame_size_x / 2)
@@ -34,7 +35,13 @@ async def run_spaceship(canvas, start_row, start_column):
 
     while True:
         for _ in range(2):
-            direction_y, direction_x, _ = read_controls(canvas)
+            direction_y, direction_x, spacebar = read_controls(canvas)
+
+            if spacebar:
+                shot_pos_x = frame_pos_x + round(frame_size_x / 2)
+                shot_pos_y = frame_pos_y - symbol_size
+                shot_coroutine = fire(canvas, shot_pos_y, shot_pos_x)
+                coroutines.append(shot_coroutine)
 
             row_speed, column_speed = update_speed(
                 row_speed,
@@ -61,8 +68,8 @@ async def run_spaceship(canvas, start_row, start_column):
             draw_frame(canvas, frame_pos_y, frame_pos_x, spaceship_frame)
             canvas.refresh()
 
-            await sleep(0.3)
-            
+            await sleep(0.1)
+
             draw_frame(
                 canvas,
                 frame_pos_y,
@@ -101,3 +108,33 @@ def read_controls(canvas):
             space_pressed = True
     
     return rows_direction, columns_direction, space_pressed
+
+
+async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
+    """Display animation of gun shot, direction and speed can be specified."""
+
+    row, column = start_row, start_column
+
+    canvas.addstr(round(row), round(column), '*')
+    await asyncio.sleep(0)
+
+    canvas.addstr(round(row), round(column), 'O')
+    await asyncio.sleep(0)
+    canvas.addstr(round(row), round(column), ' ')
+
+    row += rows_speed
+    column += columns_speed
+
+    symbol = '-' if columns_speed else '|'
+
+    rows, columns = canvas.getmaxyx()
+    max_row, max_column = rows - 1, columns - 1
+
+    curses.beep()
+
+    while 0 < row < max_row and 0 < column < max_column:
+        canvas.addstr(round(row), round(column), symbol)
+        await asyncio.sleep(0)
+        canvas.addstr(round(row), round(column), ' ')
+        row += rows_speed
+        column += columns_speed

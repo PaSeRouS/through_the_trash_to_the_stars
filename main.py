@@ -3,7 +3,7 @@ import curses
 import random
 import time
 
-from animation import animate_spaceship, run_spaceship
+from animation import animate_spaceship, run_spaceship, fire
 from curses_tools import get_frame_size, sleep
 from space_trash import fly_garbage
 
@@ -31,36 +31,6 @@ async def blink(canvas, row, column, symbol='*', offset_tics=10):
 
         canvas.addstr(row, column, symbol)
         await sleep(0.3)
-
-
-async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
-    """Display animation of gun shot, direction and speed can be specified."""
-
-    row, column = start_row, start_column
-
-    canvas.addstr(round(row), round(column), '*')
-    await asyncio.sleep(0)
-
-    canvas.addstr(round(row), round(column), 'O')
-    await asyncio.sleep(0)
-    canvas.addstr(round(row), round(column), ' ')
-
-    row += rows_speed
-    column += columns_speed
-
-    symbol = '-' if columns_speed else '|'
-
-    rows, columns = canvas.getmaxyx()
-    max_row, max_column = rows - 1, columns - 1
-
-    curses.beep()
-
-    while 0 < row < max_row and 0 < column < max_column:
-        canvas.addstr(round(row), round(column), symbol)
-        await asyncio.sleep(0)
-        canvas.addstr(round(row), round(column), ' ')
-        row += rows_speed
-        column += columns_speed
 
 
 async def fill_orbit_with_garbage(canvas, coroutines, trash_frames):
@@ -100,7 +70,6 @@ def draw(canvas):
     center_column = int(canvas_columns / 2)
 
     coroutines = []
-    coroutines.append(fire(canvas, center_row, center_column))
 
     for _ in range(100):
         coroutines.append(
@@ -147,8 +116,6 @@ def draw(canvas):
 
     trash_coroutines = fill_orbit_with_garbage(canvas, coroutines, trash_frames)
 
-    coroutines.append(trash_coroutines)
-
     rocket_frame_1 = load_frame_from_file(
         'animations/rocket_frame_1.txt'
     )
@@ -160,10 +127,16 @@ def draw(canvas):
     rocket_frames = (rocket_frame_1, rocket_frame_2)
 
     rocket_anim_coroutine = animate_spaceship(canvas, rocket_frames)
-    rocket_control_coroutine = run_spaceship(canvas, center_row, center_column)
+    rocket_control_coroutine = run_spaceship(
+        canvas,
+        coroutines,
+        center_row,
+        center_column
+    )
 
     coroutines.append(rocket_anim_coroutine)
     coroutines.append(rocket_control_coroutine)
+    coroutines.append(trash_coroutines)
     
     while True:
         for coroutine in coroutines.copy():
