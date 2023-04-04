@@ -1,7 +1,8 @@
 import asyncio
 import itertools
 
-from curses_tools import draw_frame, get_frame_size
+from curses_tools import draw_frame, get_frame_size, sleep
+from physics import update_speed
 
 
 SPACE_KEY_CODE = 32
@@ -9,24 +10,41 @@ LEFT_KEY_CODE = 260
 RIGHT_KEY_CODE = 261
 UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
+spaceship_frame = ''
 
 
-async def animate_frames(canvas, start_row, start_column, frames):
+async def animate_spaceship(canvas, frames):
+    global spaceship_frame
     frames_cycle = itertools.cycle(frames)
+
+    while True:
+        spaceship_frame = next(frames_cycle)
+        await sleep(0.3)
+
+
+async def run_spaceship(canvas, start_row, start_column):
     height, width = canvas.getmaxyx()
     border_size = 1
 
-    current_frame = next(frames_cycle)
-    frame_size_y, frame_size_x = get_frame_size(current_frame)
+    frame_size_y, frame_size_x = get_frame_size(spaceship_frame)
     frame_pos_x = round(start_column) - round(frame_size_x / 2)
     frame_pos_y = round(start_row) - round(frame_size_y / 2)
+
+    row_speed = column_speed = 0
 
     while True:
         for _ in range(2):
             direction_y, direction_x, _ = read_controls(canvas)
 
-            frame_pos_x += direction_x
-            frame_pos_y += direction_y
+            row_speed, column_speed = update_speed(
+                row_speed,
+                column_speed,
+                direction_y,
+                direction_x
+            )
+
+            frame_pos_x += column_speed
+            frame_pos_y += row_speed
 
             frame_x_max = frame_pos_x + frame_size_x
             frame_y_max = frame_pos_y + frame_size_y
@@ -40,20 +58,18 @@ async def animate_frames(canvas, start_row, start_column, frames):
             frame_pos_x = max(frame_pos_x, border_size)
             frame_pos_y = max(frame_pos_y, border_size)
 
-            draw_frame(canvas, frame_pos_y, frame_pos_x, current_frame)
+            draw_frame(canvas, frame_pos_y, frame_pos_x, spaceship_frame)
             canvas.refresh()
 
-            await asyncio.sleep(0)
-
+            await sleep(0.3)
+            
             draw_frame(
                 canvas,
                 frame_pos_y,
                 frame_pos_x,
-                current_frame,
+                spaceship_frame,
                 negative=True
             )
-
-        current_frame = next(frames_cycle)
 
 
 def read_controls(canvas):

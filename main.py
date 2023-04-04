@@ -3,8 +3,8 @@ import curses
 import random
 import time
 
+from animation import animate_spaceship, run_spaceship
 from curses_tools import get_frame_size, sleep
-from animation import animate_frames
 from space_trash import fly_garbage
 
 
@@ -113,24 +113,6 @@ def draw(canvas):
             )
         )
 
-    rocket_frame_1 = load_frame_from_file(
-        'animations/rocket_frame_1.txt'
-    )
-
-    rocket_frame_2 = load_frame_from_file(
-        'animations/rocket_frame_2.txt'
-    )
-
-    rocket_frames = (rocket_frame_1, rocket_frame_2)
-
-    coro_rocket_anim = animate_frames(
-        canvas,
-        center_row,
-        center_column,
-        rocket_frames
-    )
-    coroutines.append(coro_rocket_anim)
-
     trash_frames = []
 
     trash_frames.append(load_frame_from_file(
@@ -166,6 +148,22 @@ def draw(canvas):
     trash_coroutines = fill_orbit_with_garbage(canvas, coroutines, trash_frames)
 
     coroutines.append(trash_coroutines)
+
+    rocket_frame_1 = load_frame_from_file(
+        'animations/rocket_frame_1.txt'
+    )
+
+    rocket_frame_2 = load_frame_from_file(
+        'animations/rocket_frame_2.txt'
+    )
+
+    rocket_frames = (rocket_frame_1, rocket_frame_2)
+
+    rocket_anim_coroutine = animate_spaceship(canvas, rocket_frames)
+    rocket_control_coroutine = run_spaceship(canvas, center_row, center_column)
+
+    coroutines.append(rocket_anim_coroutine)
+    coroutines.append(rocket_control_coroutine)
     
     while True:
         for coroutine in coroutines.copy():
