@@ -5,7 +5,8 @@ import time
 
 from animation import animate_spaceship, run_spaceship, fire
 from curses_tools import get_frame_size, sleep
-from space_trash import fly_garbage
+from obstacles import show_obstacles
+from space_trash import fly_garbage, obstacles
 
 
 TIC_TIMEOUT= 0.1
@@ -55,6 +56,7 @@ async def fill_orbit_with_garbage(canvas, coroutines, trash_frames):
 
 
 def draw(canvas):
+    frame_container = []
     canvas.border()
     curses.curs_set(False)
     canvas.nodelay(True)
@@ -126,17 +128,26 @@ def draw(canvas):
 
     rocket_frames = (rocket_frame_1, rocket_frame_2)
 
-    rocket_anim_coroutine = animate_spaceship(canvas, rocket_frames)
+    rocket_anim_coroutine = animate_spaceship(
+        canvas,
+        rocket_frames,
+        frame_container
+    )
+
     rocket_control_coroutine = run_spaceship(
         canvas,
         coroutines,
         center_row,
-        center_column
+        center_column,
+        frame_container
     )
+
+    show_obstacles_coroutine = show_obstacles(canvas, obstacles)
 
     coroutines.append(rocket_anim_coroutine)
     coroutines.append(rocket_control_coroutine)
     coroutines.append(trash_coroutines)
+    coroutines.append(show_obstacles_coroutine)
     
     while True:
         for coroutine in coroutines.copy():

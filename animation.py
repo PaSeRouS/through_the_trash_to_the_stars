@@ -11,23 +11,30 @@ LEFT_KEY_CODE = 260
 RIGHT_KEY_CODE = 261
 UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
-spaceship_frame = ''
 
 
-async def animate_spaceship(canvas, frames):
-    global spaceship_frame
+async def animate_spaceship(canvas, frames, frame_container):
     frames_cycle = itertools.cycle(frames)
 
     while True:
+        frame_container.clear()
         spaceship_frame = next(frames_cycle)
+        frame_container.append(spaceship_frame)
         await sleep(0.3)
 
 
-async def run_spaceship(canvas, coroutines, start_row, start_column):
+async def run_spaceship(
+    canvas,
+    coroutines,
+    start_row,
+    start_column,
+    frame_container
+):
+
     height, width = canvas.getmaxyx()
     border_size = symbol_size = 1
 
-    frame_size_y, frame_size_x = get_frame_size(spaceship_frame)
+    frame_size_y, frame_size_x = get_frame_size(frame_container[0])
     frame_pos_x = round(start_column) - round(frame_size_x / 2)
     frame_pos_y = round(start_row) - round(frame_size_y / 2)
 
@@ -65,7 +72,7 @@ async def run_spaceship(canvas, coroutines, start_row, start_column):
             frame_pos_x = max(frame_pos_x, border_size)
             frame_pos_y = max(frame_pos_y, border_size)
 
-            draw_frame(canvas, frame_pos_y, frame_pos_x, spaceship_frame)
+            draw_frame(canvas, frame_pos_y, frame_pos_x, frame_container[0])
             canvas.refresh()
 
             await sleep(0.1)
@@ -74,7 +81,7 @@ async def run_spaceship(canvas, coroutines, start_row, start_column):
                 canvas,
                 frame_pos_y,
                 frame_pos_x,
-                spaceship_frame,
+                frame_container[0],
                 negative=True
             )
 
