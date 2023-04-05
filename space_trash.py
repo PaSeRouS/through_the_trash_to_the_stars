@@ -24,16 +24,6 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     obstacle = Obstacle(row, column, frame_row, frame_column)
     obstacles.append(obstacle)
 
-    # while row < rows_number:
-    #     draw_frame(canvas, row, column, garbage_frame)
-    #     await asyncio.sleep(0)
-    #     draw_frame(canvas, row, column, garbage_frame, negative=True)
-    #     row += speed
-    #     obstacle.row = row
-    #     canvas.border()
-
-    # obstacles.remove(obstacle)
-
     try:
         while row < rows_number:
             if obstacle in obstacles_in_last_collisions:
