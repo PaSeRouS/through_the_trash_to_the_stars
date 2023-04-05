@@ -4,6 +4,7 @@ import itertools
 
 from curses_tools import draw_frame, get_frame_size, sleep
 from physics import update_speed
+from space_trash import obstacles
 
 
 SPACE_KEY_CODE = 32
@@ -139,7 +140,11 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
     curses.beep()
 
-    while 0 < row < max_row and 0 < column < max_column:
+    while 1 < row < max_row and 1 < column < max_column:
+        for obstacle in obstacles:
+            if obstacle.has_collision(round(row), round(column)):
+                return
+        
         canvas.addstr(round(row), round(column), symbol)
         await asyncio.sleep(0)
         canvas.addstr(round(row), round(column), ' ')
