@@ -12,6 +12,29 @@ from space_trash import fly_garbage, obstacles
 TIC_TIMEOUT= 0.1
 
 
+async def count_years(year_counter, level_duration_sec=10):
+    while True:
+        await sleep(level_duration_sec)
+        year_counter[0] += 1
+
+
+async def show_year_counter(canvas, year_counter, start_year=1957):
+    height, width = canvas.getmaxyx()
+
+    counter_lenght = 9
+    year_str_pos_y = 1
+    year_str_pos_x = round(width / 2) - round(counter_lenght / 2)
+
+    while True:
+        current_year = start_year + year_counter[0]
+        canvas.addstr(
+            year_str_pos_y,
+            year_str_pos_x,
+            'Year {}'.format(current_year)
+        )
+        await asyncio.sleep(0)
+
+
 async def blink(canvas, row, column, symbol='*', offset_tics=10):
     await sleep(offset_tics / 10)
   
@@ -29,7 +52,9 @@ async def blink(canvas, row, column, symbol='*', offset_tics=10):
         await sleep(0.3)
 
 
-async def fill_orbit_with_garbage(canvas, coroutines, trash_frames):
+async def fill_orbit_with_garbage(canvas, coroutines, trash_frames,  level,
+        initial_timeout=5, complexity_factor=5, timeout_min=0.1):
+
     rows_number, columns_number = canvas.getmaxyx()
     border_size = 1
     while True:
@@ -47,16 +72,32 @@ async def fill_orbit_with_garbage(canvas, coroutines, trash_frames):
         trash_coroutines = fly_garbage(canvas, actual_column, current_trash_frame)
         coroutines.append(trash_coroutines)
         
-        await sleep(2)
+        timeout_step = level[0] / complexity_factor
+        garbage_respawn_timeout = initial_timeout - timeout_step
+
+        if garbage_respawn_timeout <= timeout_min:
+            garbage_respawn_timeout = timeout_min
+
+        await sleep(garbage_respawn_timeout)
 
 
 def draw(canvas):
     frame_container = []
+    level = [0]
     canvas.border()
     curses.curs_set(False)
     canvas.nodelay(True)
 
     canvas_rows, canvas_columns = canvas.getmaxyx()
+
+    status_bar_height = 2
+    sb_begin_y = sb_begin_x = 0
+    status_bar = canvas.derwin(
+        status_bar_height,
+        canvas_columns,
+        sb_begin_y,
+        sb_begin_x
+    )
 
     start_screen_row = 1
     start_screen_column = 1
@@ -111,7 +152,12 @@ def draw(canvas):
         )
     )
 
-    trash_coroutines = fill_orbit_with_garbage(canvas, coroutines, trash_frames)
+    trash_coroutines = fill_orbit_with_garbage(
+        canvas,
+        coroutines,
+        trash_frames,
+        level
+    )
 
     rocket_frame_1 = load_frame_from_file(
         'animations/rocket_frame_1.txt'
@@ -139,10 +185,15 @@ def draw(canvas):
 
     show_obstacles_coroutine = show_obstacles(canvas, obstacles)
 
+    count_years_coroutine = count_years(level)
+    show_year_counter_coroutine = show_year_counter(status_bar, level)
+
     coroutines.append(rocket_anim_coroutine)
     coroutines.append(rocket_control_coroutine)
     coroutines.append(trash_coroutines)
     coroutines.append(show_obstacles_coroutine)
+    coroutines.append(count_years_coroutine)
+    coroutines.append(show_year_counter_coroutine)
     
     while True:
         for coroutine in coroutines.copy():
