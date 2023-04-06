@@ -16,28 +16,21 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 
-async def animate_spaceship(canvas, frames, frame_container):
-    frames_cycle = itertools.cycle(frames)
-
-    while True:
-        frame_container.clear()
-        spaceship_frame = next(frames_cycle)
-        frame_container.append(spaceship_frame)
-        await sleep(0.3)
-
-
 async def run_spaceship(
     canvas,
     coroutines,
     start_row,
     start_column,
-    frame_container
-):
+    rocket_frames,
+    level,
+    start_year):
 
+    frames_cycle = itertools.cycle(rocket_frames)
     height, width = canvas.getmaxyx()
     border_size = symbol_size = 1
 
-    frame_size_y, frame_size_x = get_frame_size(frame_container[0])
+    current_frame = next(frames_cycle)
+    frame_size_y, frame_size_x = get_frame_size(current_frame)
     frame_pos_x = round(start_column) - round(frame_size_x / 2)
     frame_pos_y = round(start_row) - round(frame_size_y / 2)
 
@@ -47,7 +40,8 @@ async def run_spaceship(
         for _ in range(2):
             direction_y, direction_x, spacebar = read_controls(canvas)
 
-            if spacebar:
+            current_year = start_year + level[0]
+            if current_year >= 2020 and spacebar:
                 shot_pos_x = frame_pos_x + round(frame_size_x / 2)
                 shot_pos_y = frame_pos_y - symbol_size
                 shot_coroutine = fire(canvas, shot_pos_y, shot_pos_x)
@@ -75,7 +69,7 @@ async def run_spaceship(
             frame_pos_x = max(frame_pos_x, border_size)
             frame_pos_y = max(frame_pos_y, border_size)
 
-            draw_frame(canvas, frame_pos_y, frame_pos_x, frame_container[0])
+            draw_frame(canvas, frame_pos_y, frame_pos_x, current_frame)
             canvas.refresh()
 
             await sleep(0.1)
@@ -84,7 +78,7 @@ async def run_spaceship(
                 canvas,
                 frame_pos_y,
                 frame_pos_x,
-                frame_container[0],
+                current_frame,
                 negative=True
             )
 
@@ -102,6 +96,8 @@ async def run_spaceship(
                     )
                     coroutines.append(game_over_coroutine)
                     return
+
+        current_frame = next(frames_cycle)
 
 
 def read_controls(canvas):

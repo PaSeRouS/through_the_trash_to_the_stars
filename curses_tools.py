@@ -21,9 +21,6 @@ def draw_frame(canvas, start_row, start_column, text, negative=False):
             if column >= columns_number:
                 break
 
-            if symbol == ' ':
-                continue
-
             # Check that current position it is not in a lower
             # right corner of the window.
 

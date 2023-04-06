@@ -3,19 +3,18 @@ import curses
 import random
 import time
 
-from animation import animate_spaceship, run_spaceship, fire
+from animation import run_spaceship, fire
 from curses_tools import get_frame_size, sleep, load_frame_from_file
-from obstacles import show_obstacles
 from space_trash import fly_garbage, obstacles
 
 
 TIC_TIMEOUT= 0.1
 
 
-async def count_years(year_counter, level_duration_sec=10):
+async def count_years(year_counter, level_duration_sec=3, increment=5):
     while True:
         await sleep(level_duration_sec)
-        year_counter[0] += 1
+        year_counter[0] += increment
 
 
 async def show_year_counter(canvas, year_counter, start_year=1957):
@@ -53,7 +52,7 @@ async def blink(canvas, row, column, symbol='*', offset_tics=10):
 
 
 async def fill_orbit_with_garbage(canvas, coroutines, trash_frames,  level,
-        initial_timeout=5, complexity_factor=5, timeout_min=0.1):
+        initial_timeout=5, complexity_factor=5, timeout_min=0.3):
 
     rows_number, columns_number = canvas.getmaxyx()
     border_size = 1
@@ -83,6 +82,7 @@ async def fill_orbit_with_garbage(canvas, coroutines, trash_frames,  level,
 
 def draw(canvas):
     frame_container = []
+    start_year = 1957
     level = [0]
     canvas.border()
     curses.curs_set(False)
@@ -169,29 +169,21 @@ def draw(canvas):
 
     rocket_frames = (rocket_frame_1, rocket_frame_2)
 
-    rocket_anim_coroutine = animate_spaceship(
-        canvas,
-        rocket_frames,
-        frame_container
-    )
-
     rocket_control_coroutine = run_spaceship(
         canvas,
         coroutines,
         center_row,
         center_column,
-        frame_container
+        rocket_frames,
+        level,
+        start_year
     )
 
-    show_obstacles_coroutine = show_obstacles(canvas, obstacles)
-
     count_years_coroutine = count_years(level)
-    show_year_counter_coroutine = show_year_counter(status_bar, level)
+    show_year_counter_coroutine = show_year_counter(status_bar, level, start_year)
 
-    coroutines.append(rocket_anim_coroutine)
     coroutines.append(rocket_control_coroutine)
     coroutines.append(trash_coroutines)
-    coroutines.append(show_obstacles_coroutine)
     coroutines.append(count_years_coroutine)
     coroutines.append(show_year_counter_coroutine)
     
