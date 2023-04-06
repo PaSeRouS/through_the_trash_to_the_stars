@@ -50,3 +50,8 @@ async def sleep(tics=1):
     iteration_count = int(tics * 10)
     for _ in range(iteration_count):
         await asyncio.sleep(0)
+
+
+def load_frame_from_file(filename):
+    with open(filename, 'r') as file:
+        return file.read()

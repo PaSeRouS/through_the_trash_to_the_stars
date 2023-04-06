@@ -3,6 +3,7 @@ import curses
 import itertools
 
 from curses_tools import draw_frame, get_frame_size, sleep
+from curses_tools import load_frame_from_file
 from explosion import explode
 from physics import update_speed
 from space_trash import obstacles, obstacles_in_last_collisions
@@ -87,6 +88,21 @@ async def run_spaceship(
                 negative=True
             )
 
+            for obstacle in obstacles:
+                if obstacle.has_collision(frame_pos_y, frame_pos_x):
+                    game_over_frame = load_frame_from_file(
+                        'animations/gameover.txt'
+                    )
+
+                    game_over_coroutine = show_gameover(
+                        canvas,
+                        height,
+                        width,
+                        game_over_frame
+                    )
+                    coroutines.append(game_over_coroutine)
+                    return
+
 
 def read_controls(canvas):
     """Read keys pressed and returns tuple witl controls state."""
@@ -153,3 +169,12 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         canvas.addstr(round(row), round(column), ' ')
         row += rows_speed
         column += columns_speed
+
+
+async def show_gameover(canvas, window_height, window_width, frame):
+    message_size_y, message_size_x = get_frame_size(frame)
+    message_pos_y = round(window_height / 2) - round(message_size_y / 2)
+    message_pos_x = round(window_width / 2) - round(message_size_x / 2)
+    while True:
+        draw_frame(canvas, message_pos_y, message_pos_x, frame)
+        await asyncio.sleep(0)

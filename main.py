@@ -4,17 +4,12 @@ import random
 import time
 
 from animation import animate_spaceship, run_spaceship, fire
-from curses_tools import get_frame_size, sleep
+from curses_tools import get_frame_size, sleep, load_frame_from_file
 from obstacles import show_obstacles
 from space_trash import fly_garbage, obstacles
 
 
 TIC_TIMEOUT= 0.1
-
-
-def load_frame_from_file(filename):
-    with open(filename, 'r') as file:
-        return file.read()
 
 
 async def blink(canvas, row, column, symbol='*', offset_tics=10):
