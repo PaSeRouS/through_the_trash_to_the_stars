@@ -1,4 +1,6 @@
 import asyncio
+from os import listdir
+from os.path import isfile, join
 
 
 def draw_frame(canvas, start_row, start_column, text, negative=False):
@@ -52,3 +54,11 @@ async def sleep(tics=1):
 def load_frame_from_file(filename):
     with open(filename, 'r') as file:
         return file.read()
+
+
+def load_multiple_frames(dirnames):
+    return [
+        load_frame_from_file(join(dirnames, file))
+        for file in listdir(dirnames)
+        if isfile(join(dirnames, file))
+    ]

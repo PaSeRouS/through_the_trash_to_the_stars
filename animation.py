@@ -72,7 +72,7 @@ async def run_spaceship(
             draw_frame(canvas, frame_pos_y, frame_pos_x, current_frame)
             canvas.refresh()
 
-            await sleep(0.1)
+            await asyncio.sleep(0)
 
             draw_frame(
                 canvas,

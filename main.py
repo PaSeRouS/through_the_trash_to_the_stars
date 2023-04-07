@@ -2,9 +2,11 @@ import asyncio
 import curses
 import random
 import time
+from os.path import join
 
 from animation import run_spaceship, fire
 from curses_tools import get_frame_size, sleep, load_frame_from_file
+from curses_tools import load_multiple_frames
 from space_trash import fly_garbage, obstacles
 
 
@@ -120,37 +122,10 @@ def draw(canvas):
             )
         )
 
-    trash_frames = []
-
-    trash_frames.append(load_frame_from_file(
-            'animations/duck.txt'
-        )
-    )
-
-    trash_frames.append(load_frame_from_file(
-            'animations/hubble.txt'
-        )
-    )
-
-    trash_frames.append(load_frame_from_file(
-            'animations/lamp.txt'
-        )
-    )
-
-    trash_frames.append(load_frame_from_file(
-            'animations/trash_large.txt'
-        )
-    )
-
-    trash_frames.append(load_frame_from_file(
-            'animations/trash_small.txt'
-        )
-    )
-
-    trash_frames.append(load_frame_from_file(
-            'animations/trash_xl.txt'
-        )
-    )
+    anim_dir = 'animations'
+    
+    trash_frames_dir = join(anim_dir, 'trash')
+    trash_frames = load_multiple_frames(trash_frames_dir)
 
     trash_coroutines = fill_orbit_with_garbage(
         canvas,
@@ -159,15 +134,8 @@ def draw(canvas):
         level
     )
 
-    rocket_frame_1 = load_frame_from_file(
-        'animations/rocket_frame_1.txt'
-    )
-
-    rocket_frame_2 = load_frame_from_file(
-        'animations/rocket_frame_2.txt'
-    )
-
-    rocket_frames = (rocket_frame_1, rocket_frame_2)
+    rocket_frames_dir = join(anim_dir, 'rocket')
+    rocket_frames = load_multiple_frames(rocket_frames_dir)
 
     rocket_control_coroutine = run_spaceship(
         canvas,
